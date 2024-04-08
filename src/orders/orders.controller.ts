@@ -12,19 +12,17 @@ import {
   Patch,
 } from '@nestjs/common';
 
-import { ORDERS_SERVICE } from 'src/config';
+import { NATS_CLIENT } from 'src/config';
 import { CreateOrderDto, PaginationOrderDto, StatusDto } from './dto';
 import { PaginationDto } from 'src/common';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(
-    @Inject(ORDERS_SERVICE) private readonly ordersClient: ClientProxy,
-  ) {}
+  constructor(@Inject(NATS_CLIENT) private readonly client: ClientProxy) {}
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersClient.send('createOrder', createOrderDto).pipe(
+    return this.client.send('createOrder', createOrderDto).pipe(
       catchError((error) => {
         throw new RpcException(error);
       }),
@@ -33,7 +31,7 @@ export class OrdersController {
 
   @Get()
   findAll(@Query() paginationOrderDto: PaginationOrderDto) {
-    return this.ordersClient.send('findAllOrders', paginationOrderDto).pipe(
+    return this.client.send('findAllOrders', paginationOrderDto).pipe(
       catchError((error) => {
         throw new RpcException(error);
       }),
@@ -42,7 +40,7 @@ export class OrdersController {
 
   @Get('id/:id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.ordersClient.send('findOneOrder', { id }).pipe(
+    return this.client.send('findOneOrder', { id }).pipe(
       catchError((error) => {
         throw new RpcException(error);
       }),
@@ -54,7 +52,7 @@ export class OrdersController {
     @Param() statusDto: StatusDto,
     @Query() paginationDto: PaginationDto,
   ) {
-    return this.ordersClient
+    return this.client
       .send('findAllOrders', { ...statusDto, ...paginationDto })
       .pipe(
         catchError((error) => {
@@ -68,12 +66,10 @@ export class OrdersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() statusDto: StatusDto,
   ) {
-    return this.ordersClient
-      .send('changueOrderStatus', { id, ...statusDto })
-      .pipe(
-        catchError((error) => {
-          throw new RpcException(error);
-        }),
-      );
+    return this.client.send('changueOrderStatus', { id, ...statusDto }).pipe(
+      catchError((error) => {
+        throw new RpcException(error);
+      }),
+    );
   }
 }
