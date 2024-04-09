@@ -1,5 +1,5 @@
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { catchError } from 'rxjs';
+import { catchError, firstValueFrom } from 'rxjs';
 import {
   Controller,
   Get,
@@ -30,7 +30,7 @@ export class OrdersController {
   }
 
   @Get()
-  findAll(@Query() paginationOrderDto: PaginationOrderDto) {
+  async findAll(@Query() paginationOrderDto: PaginationOrderDto) {
     return this.client.send('findAllOrders', paginationOrderDto).pipe(
       catchError((error) => {
         throw new RpcException(error);
